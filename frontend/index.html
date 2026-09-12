@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Intelligent Healthcare Resource Allocation and Patient Management System">
+  <title>Healthcare Resource Management System | Clinical Command Center</title>
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Main Design System CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Leaflet GIS Map Library with Multi-CDN Fallback -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    // Fallback if unpkg fails
+    if (typeof window.L === 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
+      document.head.appendChild(script);
+    }
+  </script>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">🏥</div>
+        <div class="brand-title">
+          <h1>RuralHealth OS</h1>
+          <span>Climate Outbreak Foresight</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Epidemiological Surveillance</div>
+        
+        <a class="nav-link active" data-tab="dashboard" id="nav-dashboard">
+          <span class="nav-icon">🗺️</span>
+          <span>GIS Surveillance Map</span>
+          <span class="nav-badge" style="background: var(--danger); color: #fff;" id="badge-map-critical">5 Alert</span>
+        </a>
+
+        <a class="nav-link" data-tab="patients" id="nav-patients">
+          <span class="nav-icon">👥</span>
+          <span>Patient Registry</span>
+          <span class="nav-badge" id="badge-patients-count">0</span>
+        </a>
+
+        <a class="nav-link" data-tab="admissions" id="nav-admissions">
+          <span class="nav-icon">🏥</span>
+          <span>Admissions & Triage</span>
+          <span class="nav-badge" id="badge-admissions-count">0</span>
+        </a>
+
+        <div class="nav-section-title">Resource Management</div>
+
+        <a class="nav-link" data-tab="resources" id="nav-resources">
+          <span class="nav-icon">📦</span>
+          <span>Equipment & Beds</span>
+          <span class="nav-badge" id="badge-resources-count">0</span>
+        </a>
+
+        <a class="nav-link" data-tab="allocations" id="nav-allocations">
+          <span class="nav-icon">⚡</span>
+          <span>Dispatch Matrix</span>
+          <span class="nav-badge" id="badge-allocations-count">0</span>
+        </a>
+
+        <div class="nav-section-title">Intelligence & System</div>
+
+        <a class="nav-link" data-tab="ai-foresight" id="nav-ai-foresight">
+          <span class="nav-icon">🧠</span>
+          <span>AI Clinical Foresight</span>
+          <span class="nav-badge" style="background: var(--primary); color: #fff;">ML</span>
+        </a>
+
+        <a class="nav-link" data-tab="analytics" id="nav-analytics">
+          <span class="nav-icon">📈</span>
+          <span>Capacity Analytics</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Status Card -->
+      <div class="sidebar-footer">
+        <div class="system-status-card">
+          <div class="status-pulse-dot" id="status-pulse-dot"></div>
+          <div class="status-info">
+            <span class="status-title" id="status-title">Checking System...</span>
+            <span class="status-subtitle" id="status-subtitle">FastAPI REST API</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Application Viewport -->
+    <main class="app-main">
+      
+      <!-- Top Sticky Navigation Bar -->
+      <header class="app-header">
+        <div class="header-left">
+          <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle Menu">
+            ☰
+          </button>
+          
+          <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input 
+              type="text" 
+              class="search-input" 
+              id="global-search-input" 
+              placeholder="Search patients, equipment, admissions..."
+            />
+            <span class="search-shortcut">/</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Quick Action Buttons -->
+          <button class="quick-action-btn" id="btn-header-new-patient" title="Register New Patient">
+            <span>+ Patient</span>
+          </button>
+          
+          <button class="quick-action-btn" id="btn-header-new-admission" style="background: linear-gradient(135deg, var(--secondary), #4338ca);" title="Admit Patient">
+            <span>+ Admit</span>
+          </button>
+
+          <button class="quick-action-btn" id="btn-header-new-allocation" style="background: linear-gradient(135deg, #f59e0b, #d97706);" title="Allocate Resource">
+            <span>⚡ Dispatch</span>
+          </button>
+
+          <!-- Seeder Action -->
+          <button class="header-icon-btn" id="btn-header-seed" title="Seed Demo Data (Patients, ICU Beds, Ventilators)">
+            ⚡
+          </button>
+
+          <!-- Refresh Data -->
+          <button class="header-icon-btn" id="btn-header-refresh" title="Sync Data with Backend">
+            🔄
+          </button>
+
+          <!-- Theme Toggle Button -->
+          <button class="header-icon-btn" id="btn-theme-toggle" title="Toggle Dark/Light Mode">
+            ☀️
+          </button>
+        </div>
+      </header>
+
+      <!-- Dynamic Views Container -->
+      <div class="app-content" id="view-container">
+        
+        <!-- View 1: Executive Dashboard -->
+        <section class="view-section active" id="view-dashboard"></section>
+
+        <!-- View 2: Patient Directory -->
+        <section class="view-section" id="view-patients"></section>
+
+        <!-- View 3: Admissions & Triage -->
+        <section class="view-section" id="view-admissions"></section>
+
+        <!-- View 4: Resource Inventory -->
+        <section class="view-section" id="view-resources"></section>
+
+        <!-- View 5: Allocation Matrix -->
+        <section class="view-section" id="view-allocations"></section>
+
+        <!-- View 6: Capacity Analytics -->
+        <section class="view-section" id="view-analytics"></section>
+
+        <!-- View 7: AI Clinical Foresight (ML Prediction & Triage) -->
+        <section class="view-section" id="view-ai-foresight"></section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL DIALOGS                                                             -->
+  <!-- ========================================================================= -->
+
+  <!-- Modal 1: Register / Edit Patient -->
+  <div class="modal-backdrop" id="modal-patient">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="patient-modal-title">Register New Patient</h3>
+        <button class="modal-close-btn" onclick="document.getElementById('modal-patient').classList.remove('active')">✕</button>
+      </div>
+      <form id="form-patient">
+        <input type="hidden" id="patient-form-id">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">First Name <span class="required">*</span></label>
+              <input type="text" class="form-input" id="patient-first-name" required placeholder="e.g. John">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name <span class="required">*</span></label>
+              <input type="text" class="form-input" id="patient-last-name" required placeholder="e.g. Doe">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Date of Birth <span class="required">*</span></label>
+              <input type="date" class="form-input" id="patient-dob" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gender</label>
+              <select class="form-select" id="patient-gender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Medical Record Number (MRN) <span class="required">*</span></label>
+              <input type="text" class="form-input font-mono" id="patient-mrn" required placeholder="MRN-2026-XXXX">
+              <span class="form-hint">Unique medical identifier</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact Number</label>
+              <input type="tel" class="form-input" id="patient-contact" placeholder="+1 (555) 000-0000">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-input" id="patient-email" placeholder="patient@example.com">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Residential Address</label>
+            <textarea class="form-textarea" id="patient-address" rows="2" placeholder="Street address, City, State, ZIP"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-patient').classList.remove('active')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Patient Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Patient Detailed EMR Drawer -->
+  <div class="modal-backdrop" id="modal-patient-details">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Patient Electronic Medical Profile</h3>
+        <button class="modal-close-btn" onclick="document.getElementById('modal-patient-details').classList.remove('active')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;">
+          <div>
+            <h2 class="patient-detail-name" style="font-size: 20px; font-weight: 700; color: var(--text-primary);">--</h2>
+            <span class="mrn-badge patient-detail-mrn" style="margin-top: 4px; display: inline-block;">--</span>
+          </div>
+          <span class="badge badge-active patient-detail-gender">--</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; margin-bottom: 20px;">
+          <div><strong>Date of Birth:</strong> <span class="patient-detail-dob">--</span></div>
+          <div><strong>Contact Phone:</strong> <span class="patient-detail-contact">--</span></div>
+          <div><strong>Email:</strong> <span class="patient-detail-email">--</span></div>
+          <div><strong>Address:</strong> <span class="patient-detail-address">--</span></div>
+        </div>
+
+        <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--text-primary);">Clinical Admission & Allocation History</h4>
+        <div class="patient-admissions-history">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-patient-details').classList.remove('active')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Admit Patient / Clinical Triage -->
+  <div class="modal-backdrop" id="modal-create-admission">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="admission-modal-title">Admit Patient</h3>
+        <button class="modal-close-btn" onclick="document.getElementById('modal-create-admission').classList.remove('active')">✕</button>
+      </div>
+      <form id="form-admission">
+        <input type="hidden" id="admission-form-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Patient <span class="required">*</span></label>
+            <select class="form-select" id="admission-patient-select" required>
+              <option value="">-- Select Patient --</option>
+            </select>
+          </div>
+
+          <!-- AI Triage Assist Tool -->
+          <div style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.3); border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 16px;">🧠</span>
+                <strong style="font-size: 13px; color: var(--text-primary);">AI Clinical Foresight Assist</strong>
+                <span class="badge badge-active" style="font-size: 10px;">Random Forest ML</span>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-toggle-vitals" style="padding: 2px 8px; font-size: 11px;">
+                ⚡ Input Vitals & Predict
+              </button>
+            </div>
+            
+            <div id="ai-vitals-container" style="display: none; margin-top: 12px;">
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 12px; margin-bottom: 8px;">
+                <div>
+                  <label class="form-label" style="font-size: 11px;">Heart Rate (bpm)</label>
+                  <input type="number" class="form-input" id="ai-hr" value="78" min="30" max="220" style="padding: 4px 8px;">
+                </div>
+                <div>
+                  <label class="form-label" style="font-size: 11px;">SpO2 (%)</label>
+                  <input type="number" class="form-input" id="ai-spo2" value="98" min="50" max="100" style="padding: 4px 8px;">
+                </div>
+                <div>
+                  <label class="form-label" style="font-size: 11px;">Systolic BP</label>
+                  <input type="number" class="form-input" id="ai-sysbp" value="120" min="50" max="250" style="padding: 4px 8px;">
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 12px; margin-bottom: 10px;">
+                <div>
+                  <label class="form-label" style="font-size: 11px;">Resp. Rate (/min)</label>
+                  <input type="number" class="form-input" id="ai-rr" value="16" min="8" max="60" style="padding: 4px 8px;">
+                </div>
+                <div>
+                  <label class="form-label" style="font-size: 11px;">Temp (°C)</label>
+                  <input type="number" class="form-input" id="ai-temp" value="37.0" step="0.1" min="32" max="43" style="padding: 4px 8px;">
+                </div>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-run-ai-triage" style="width: 100%; justify-content: center;">
+                <span>🤖 Run AI Prediction & Auto-Fill Triage</span>
+              </button>
+            </div>
+            
+            <div id="ai-triage-result" style="display: none; margin-top: 10px; padding: 10px 12px; background: rgba(0,0,0,0.3); border-radius: var(--radius-sm); font-size: 12px;"></div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Department / Ward <span class="required">*</span></label>
+              <input type="text" class="form-input" id="admission-dept" required placeholder="e.g. Intensive Care Unit (ICU)">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Triage Severity <span class="required">*</span></label>
+              <select class="form-select" id="admission-severity">
+                <option value="Critical">Critical (Immediate Care)</option>
+                <option value="High">High (Urgent Attention)</option>
+                <option value="Moderate" selected>Moderate (Standard Care)</option>
+                <option value="Low">Low (Observation)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Admission Timestamp <span class="required">*</span></label>
+              <input type="datetime-local" class="form-input" id="admission-date" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="admission-status">
+                <option value="active">Active Inpatient</option>
+                <option value="discharged">Discharged</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Clinical Diagnosis / Intake Notes</label>
+            <textarea class="form-textarea" id="admission-diagnosis" rows="3" placeholder="Primary diagnosis, symptoms, and clinical assessment..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-create-admission').classList.remove('active')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Confirm Admission</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Add / Edit Resource -->
+  <div class="modal-backdrop" id="modal-resource">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="resource-modal-title">Add Healthcare Resource Asset</h3>
+        <button class="modal-close-btn" onclick="document.getElementById('modal-resource').classList.remove('active')">✕</button>
+      </div>
+      <form id="form-resource">
+        <input type="hidden" id="resource-form-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Asset Name <span class="required">*</span></label>
+            <input type="text" class="form-input" id="resource-name" required placeholder="e.g. Mechanical Ventilator Series X">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Resource Category <span class="required">*</span></label>
+              <select class="form-select" id="resource-type" required>
+                <option value="Hospital Beds">Hospital Beds</option>
+                <option value="Critical Care Equipment">Critical Care Equipment</option>
+                <option value="Diagnostic Monitors">Diagnostic Monitors</option>
+                <option value="Respiratory & Gas">Respiratory & Gas</option>
+                <option value="Emergency Response">Emergency Response</option>
+                <option value="Imaging & Diagnostic">Imaging & Diagnostic</option>
+                <option value="PPE & Medical Supplies">PPE & Medical Supplies</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Measurement Unit</label>
+              <input type="text" class="form-input" id="resource-unit" placeholder="e.g. Beds, Units, Tanks">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Total Inventory <span class="required">*</span></label>
+              <input type="number" class="form-input" id="resource-qty-total" min="1" required placeholder="10">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Available for Dispatch <span class="required">*</span></label>
+              <input type="number" class="form-input" id="resource-qty-avail" min="0" required placeholder="10">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Hospital Location</label>
+              <input type="text" class="form-input" id="resource-location" placeholder="e.g. ICU Wing 3rd Floor">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Operational Status</label>
+              <select class="form-select" id="resource-status">
+                <option value="available">Available</option>
+                <option value="low_stock">Low Stock</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-resource').classList.remove('active')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Resource</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Dispatch / Allocate Resource to Patient -->
+  <div class="modal-backdrop" id="modal-create-allocation">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Dispatch Resource to Inpatient</h3>
+        <button class="modal-close-btn" onclick="document.getElementById('modal-create-allocation').classList.remove('active')">✕</button>
+      </div>
+      <form id="form-allocation">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Inpatient Admission <span class="required">*</span></label>
+            <select class="form-select" id="allocation-admission-select" required>
+              <option value="">-- Select Active Admission --</option>
+            </select>
+            <span class="form-hint">Equipment will be tracked under this patient admission</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Resource Asset <span class="required">*</span></label>
+            <select class="form-select" id="allocation-resource-select" required>
+              <option value="">-- Select Available Resource --</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Quantity to Allocate <span class="required">*</span></label>
+              <input type="number" class="form-input" id="allocation-quantity" min="1" value="1" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Expected Return Date</label>
+              <input type="date" class="form-input" id="allocation-return-date">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Clinical Allocation Notes</label>
+            <textarea class="form-textarea" id="allocation-notes" rows="2" placeholder="Protocol instructions, physician orders, or device settings..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-create-allocation').classList.remove('active')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Dispatch Equipment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 6: Reusable Confirmation Dialog -->
+  <div class="modal-backdrop" id="modal-confirm">
+    <div class="modal-dialog" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Action</h3>
+        <button class="modal-close-btn" onclick="document.getElementById('modal-confirm').classList.remove('active')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-message" style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">Are you sure you want to proceed?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-confirm').classList.remove('active')">Cancel</button>
+        <button type="button" class="btn btn-danger btn-confirm-action">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container Host -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Main ES6 Module Application Script -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

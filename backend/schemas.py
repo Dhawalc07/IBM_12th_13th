@@ -107,3 +107,57 @@ class ResourceAllocationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class MLPredictionInput(BaseModel):
+    # Rural climate & epidemiological parameters
+    rainfall_mm: Optional[float] = 15.0
+    rainfall_anomaly_pct: Optional[float] = 10.0
+    temp_mean_c: Optional[float] = 28.5
+    humidity_pct: Optional[float] = 65.0
+    flood_risk_score: Optional[float] = 0.25
+    vector_breeding_pressure: Optional[float] = 2.5
+    waterborne_runoff_risk: Optional[float] = 1.2
+    population: Optional[int] = 3000
+    tap_water_access_pct: Optional[float] = 35.0
+    sanitation_access_pct: Optional[float] = 50.0
+    distance_phc_km: Optional[float] = 7.5
+    all_weather_road: Optional[int] = 1
+    mo_in_position: Optional[int] = 1
+    anm_present: Optional[int] = 1
+    asha_workers_count: Optional[int] = 3
+    cold_chain_functional: Optional[int] = 1
+
+    # Inpatient clinical vitals
+    age: Optional[int] = 45
+    gender: Optional[str] = "Male"
+    heart_rate: Optional[float] = 75.0
+    systolic_bp: Optional[float] = 120.0
+    diastolic_bp: Optional[float] = 80.0
+    spo2: Optional[float] = 98.0
+    respiratory_rate: Optional[float] = 16.0
+    temperature: Optional[float] = 37.0
+    comorbidities: Optional[str] = "None"
+    department: Optional[str] = "Emergency & Trauma"
+
+
+class MLPredictionResponse(BaseModel):
+    predicted_malaria_cases_2w: Optional[float] = None
+    predicted_diarrhea_cases_2w: Optional[float] = None
+    outbreak_risk_level: Optional[str] = None
+    risk_confidence: Optional[float] = None
+    hazard_score: Optional[float] = None
+    risk_probabilities: Optional[dict] = None
+    recommended_resource: Optional[str] = None
+    epidemiological_warnings: Optional[list] = None
+    clinical_rationale: Optional[str] = None
+
+    # Backward compatibility aliases
+    predicted_severity: Optional[str] = None
+    severity_confidence: Optional[float] = None
+    risk_score: Optional[float] = None
+
+
+class ModelMetadataResponse(BaseModel):
+    status: str
+    metadata: Optional[dict] = None

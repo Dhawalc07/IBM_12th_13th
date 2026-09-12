@@ -14,6 +14,28 @@ from backend.schemas import (
 router = APIRouter()
 
 
+@router.get("/health")
+def get_system_health(db: Session = Depends(get_db)):
+    patients_count = db.query(Patient).count()
+    resources_count = db.query(Resource).count()
+    admissions_count = db.query(Admission).count()
+    allocations_count = db.query(ResourceAllocation).count()
+    active_admissions = db.query(Admission).filter(Admission.status == "active").count()
+    
+    return {
+        "status": "healthy",
+        "database": "connected",
+        "timestamp": datetime.utcnow().isoformat(),
+        "counts": {
+            "patients": patients_count,
+            "resources": resources_count,
+            "admissions": admissions_count,
+            "active_admissions": active_admissions,
+            "allocations": allocations_count
+        }
+    }
+
+
 @router.post("/patients", response_model=PatientResponse, status_code=status.HTTP_201_CREATED)
 def create_patient(patient: PatientCreate, db: Session = Depends(get_db)):
     db_patient = Patient(**patient.dict())

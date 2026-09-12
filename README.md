@@ -1,6 +1,8 @@
-# Healthcare Resource Management System
+# RuralHealth OS: Outbreak Surveillance & Healthcare Resource Management System
 
-An intelligent healthcare resource allocation and patient management system designed to revolutionize healthcare delivery through data-driven foresight and proactive intervention.
+An intelligent climate-triangulated epidemiological surveillance and healthcare resource allocation system designed to revolutionize rural healthcare delivery through data-driven foresight and proactive intervention.
+
+> 📖 **[Click here for the Full Project Documentation & Execution Guide](PROJECT_DOCUMENTATION.md)**
 
 ## Product Vision
 
@@ -15,18 +17,21 @@ To revolutionize healthcare delivery by creating an intelligent ecosystem where 
 
 ## Core Features
 
-- **Patient Management**: Complete CRUD operations for patient records
-- **Resource Management**: Track and manage healthcare resources (beds, equipment, supplies)
-- **Admission Management**: Handle patient admissions and discharges
-- **Resource Allocation**: Allocate resources to patient admissions with availability tracking
+- **AI Clinical Foresight & Triage Prediction**: Real-time Machine Learning model trained on clinical vitals (SpO2, heart rate, blood pressure, respiratory rate) to predict triage severity levels and clinical risk scores (0-100).
+- **Intelligent Resource Forecasting**: Automatically predicts necessary hospital assets (Ventilators, ICU Beds, Oxygen Concentrators) based on patient degradation risk.
+- **Patient Management**: Complete CRUD operations for patient records with medical history.
+- **Resource Management**: Track and manage healthcare resources (beds, equipment, supplies) with real-time depletion thresholds.
+- **Admission Management**: Handle patient admissions and discharges with integrated AI Triage Assist.
+- **Resource Allocation**: Allocate resources to patient admissions with live inventory decrement and automatic restoration.
 
 ## Technology Stack
 
 - **Backend Framework**: FastAPI (Python)
+- **Machine Learning**: Scikit-Learn (Random Forest Ensemble, StandardScaler, OneHotEncoder, Joblib)
 - **Database**: SQLite (development) / PostgreSQL (production)
 - **ORM**: SQLAlchemy
-- **Data Validation**: Pydantic
-- **Architecture**: Modular Monolith
+- **Data Validation**: Pydantic v2
+- **Architecture**: Modular Monolith with ML Pipeline Integration
 
 ## Prerequisites
 
@@ -103,6 +108,13 @@ uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 - `GET /api/v1/resource-allocations` - List all resource allocations
 - `GET /api/v1/resource-allocations/{allocation_id}` - Get allocation by ID
 - `DELETE /api/v1/resource-allocations/{allocation_id}` - Delete allocation
+
+### Machine Learning & Clinical Foresight
+- `POST /api/v1/ml/predict` - Predict triage severity & recommended equipment from vitals
+- `GET /api/v1/ml/model-info` - Get model training status, accuracy, and feature importances
+- `POST /api/v1/ml/train` - Retrain the Random Forest model on the active dataset
+- `POST /api/v1/ml/upload-dataset` - Upload custom CSV dataset and automatically retrain model
+- See `DATASET_GUIDE.md` for complete dataset formatting specifications.
 
 ## Project Structure
 
